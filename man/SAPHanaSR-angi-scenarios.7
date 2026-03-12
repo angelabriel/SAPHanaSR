@@ -1,13 +1,14 @@
 .\" Version: 1.2
 .\"
-.TH SAPHanaSR-angi-scenarios 7 "08 May 2025" "" "SAPHanaSR-angi"
+.TH SAPHanaSR-angi-scenarios 7 "17 Nov 2025" "" "SAPHanaSR-angi"
 .\"
 .SH NAME
+.\"
 SAPHanaSR-angi-scenarios \- SAP HANA system replication scenarios.
 .PP
 .\"
 .SH DESCRIPTION
-.PP
+.\"
 SAPHanaSR-angi covers two topologies, scale-up and scale-out. On each topology,
 several scenarios are supported. Finally, for most scenarios, two variants are
 possible. 
@@ -36,6 +37,7 @@ c c c
 ^ c ^
 ^ c ^
 ^ c c
+^ c ^
 ^ c c
 ^ c ^
 ^ c ^
@@ -56,6 +58,7 @@ Scale-Out@perf-opt, up to 12 nodes, no standby (BW)@Supported
 @perf-opt, 4 nodes, 2nd site read-enabled (ERP)@Supported
 @perf-opt, multi-target, 3rd site outside cluster@Supported
 @perf-opt, up to 30 nodes w. standby (BW)@Undocumented
+@perf-opt, 4 nodes w. standalone XSA, no standby *@Undocumented
 @perf-opt, multi-target, 3rd site inside cluster@Non-supported
 @perf-opt, multi-SID@Non-supported
 @cost-opt@Non-supported
@@ -64,6 +67,8 @@ Scale-Out@perf-opt, up to 12 nodes, no standby (BW)@Supported
 .PP
 .RS 4
 Note: One additional Linux cluster node at 3rd site is needed for all scale-out scenarios.
+.br
+* Note 2: SUSE HA for scale-out standalone XSA is a technology preview. 
 .RE
 .\" TODO mention side effects of combined installations, e.g. resource limits or fencing priority
 .\" TODO align wording with "Supported HA Solutions"
@@ -109,7 +114,6 @@ Symbol@Meaning
 '@primary IP address
 "@secondary (read-enabled) IP address
 .TE
-
 .PP
 The scale-up performance-optimised multi-target scenario can be noted as:
 .br
@@ -117,27 +121,90 @@ The scale-up performance-optimised multi-target scenario can be noted as:
 .PP
 \fB* Variants overview\fB
 .PP
-.\" TODO variants conservative, progressive
 SAPHanaSR-angi allows to define different variants of reaction on failures.
 .PP
 \fBConservative\fR – default configuration
 .br
 The cluster is patient, it prefers stopping HANA over fencing nodes. It does
-not react on filesystem failures.
+not react on filesystem failures. The related settings are:
+.br
+- SAPHanaController monitor and stop timeout, ON_FAIL_ACTION=proceed
+.br
+- susChkSrv.py action_on_lost=[stop|kill], for scale-up
+.br
+  susChkSrv.py action_on_lost=stop, for scale-out without standby node
+.br
+  susChkSrv.py action_on_lost=kill, for scale-out with standby node
+.br
+- no SAPHanaSR-alert-fencing
+.br
+- Diskbased SBD msgwait
+.br
+- Linux cluster does not start automatically at OS boot
 .PP
 \fBProgressive\fR – alternative configuration
 .br
 The cluster reacts on failures of HANA or filesystem with fencing all nodes
-of the affected site. Takeover time might be further reduced by using diskless SBD.
+of the affected site. Also HANA landscape status FATAL and HANA call timeout
+will trigger a fencing.
+Takeover time might be further reduced by using diskless SBD.
+This variant primarily is meant for HANA scale-up and scale-out without standby
+nodes. For scale-out with standby nodes, the progressive variants must not use
+alert fencing. The related settings are:
+.br
+- SAPHanaController ON_FAIL_ACTION=fence and stop action on-fail=fence
+.br
+- SAPHanaFilesystem ON_FAIL_ACTION=fence and stop action on-fail=fence
+.br
+- susChkSrv.py action_on_lost=fence, for performance-optimized
+.br
+- SAPHanaSR-alert-fencing, for scale-out without standby node
+.br
+  no SAPHanaSR-alert-fencing, for scale-out with standby node
+.br
+- Diskless SBD (optional, not for two-node cluster)
 .PP
 For details on configuration of the variants, please refer to manual pages
 ocf_suse_SAPHanaController(7), ocf_suse_SAPHana(7), ocf_suse_SAPHanaFilesystem(7),
 SAPHanaSR-alert-fencing(8), susChkSrv.py(7), SAPHanaSR_basic_cluster(7),
 SAPHanaSR-ScaleOut_basic_cluster(7).
 .PP
+\fB* HA/DR provider hook scripts overview\fR
+.PP
+The table shows topologies, scenarios and related HA/DR provider hook scripts.
+The current support status is also shown.
+.PP
+.TS
+tab(@) allbox center;
+cb cb s s
+^ c c c
+c c c c
+c c c c
+c c c c
+c c c c.
+Hook script@Scenario
+@Scale-up cost-opt@Scale-up perf-opt@Scale-out perf-opt
+susHanaSR.py@Mandatory@Mandatory@Mandatory
+susTkOver.py@Supported@Supported@Supported
+susChkSrv.py@Non-supported@Supported@Supported
+susCostOpt.py@Mandatory@Non-supported@Non-supported
+.TE
+.PP
+\fBMandatory\fR - the hook script has to be used for this topology and scenario.
+.PP
+\fBSupported\fR - the hook script is known to work for this topology and scenario.
+The setup has been tested. It is supported by SUSE. Configuration details might
+depend on topology, scenario and variant.
+.PP
+\fBNon-supported\fR - the hook script is expected not to work for this topology
+and scenario. It is not supported by SUSE.
+.PP
+For details on configuration of the hook scripts, please refer to manual pages
+susHanaSR.py(7), susTkOver.py(7), susChkSrv.py(7), susCostOpt.py(7).
+.PP
 .\"
 .SH EXAMPLES
-.PP
+.\"
 \fB* Examples for supported scenarios\fR
 .TP
 Scale-up performance-optimised multi-target
@@ -162,14 +229,14 @@ Scale-out performance-optimised two clusters connected
 .PP
 .\"
 .SH BUGS
-.PP
+.\"
 In case of any problem, please use your favourite SAP support process to open
 a request for the component BC-OP-LNX-SUSE.
 Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
 .SH SEE ALSO
-.PP
+.\"
 \fBSAPHanaSR-angi\fP(7) , \fBSAPHanaSR\fP(7) , \fBSAPHanaSR-ScaleOut\fP(7) ,
 \fBocf_suse_SAPHanaController\fP(7) , \fBocf_suse_SAPHana\fP(7) ,
 \fBocf_suse_SAPHanaFilesystem\fP(7) , \fBSAPHanaSR-alert-fencing\fP(8) ,
@@ -182,13 +249,13 @@ https://documentation.suse.com/sbp/sap-15/
 .PP
 .\"
 .SH AUTHORS
-.PP
+.\"
 A.Briel, F.Herschel, L.Pinne.
 .PP
 .\"
 .SH COPYRIGHT
-.PP
-(c) 2024-2025 SUSE LLC
+.\"
+(c) 2024-2026 SUSE LLC
 .br
 The package SAPHanaSR-angi comes with ABSOLUTELY NO WARRANTY.
 .br

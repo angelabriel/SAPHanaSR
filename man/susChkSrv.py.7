@@ -1,20 +1,23 @@
 .\" Version: 1.2 
 .\"
-.TH susChkSrv.py 7 "03 Mar 2025" "" "SAPHanaSR"
+.TH susChkSrv.py 7 "27 Oct 2025" "" "SAPHanaSR"
 .\"
 .SH NAME
+.\"
 susChkSrv.py \- Provider for SAP HANA srHook method srServiceStateChanged().
 .PP
+.\"
 .SH DESCRIPTION
+.\"
 susChkSrv.py can be used to provide a script for the SAP HANA srHook method
 srServiceStateChanged().
-
+.PP
 The SAP HANA nameserver provides a Python-based API ("HA/DR providers"), which
 is called at important points of the host auto-failover and system replication
 takeover processes. These so called hooks can be used for arbitrary operations
 that need to be executed. The method srServiceStateChanged() is called when
 HANA processes are failing, starting or stopping.
-
+.PP
 Purpose of susChkSrv.py is to detect failing HANA indexserver processes and
 trigger a fast takeover to the secondary site. With regular configuration of an
 HANA database, the resource agent (RA) for HANA in a Linux cluster does not
@@ -27,7 +30,7 @@ by the HANA daemon (hdbdaemon).
 indexserver to restart locally.
 .br
 See also SAPHanaSR(7) or SAPHanaSR-ScaleOut(7).
-
+.PP
 The hook script susChkSrv.py is called on any srServiceStateChanged() event.
 The script checks for
  'isIndexserver and serviceRestart and serviceWasActiveBefore and hostActive and databaseActive'.
@@ -36,15 +39,16 @@ the HANA landscapeHostConfiguration status changes to 1, the Linux cluster will
 take action. The action depends on HANA system replication status and the RA´s
 configuration parameters PREFER_SITE_TAKEOVER, AUTOMATED_REGISTER and ON_FAIL_ACTION. See manual
 page ocf_suse_SAPHana(7) or ocf_suse_SAPHanaController(7).
-
+.PP
 Customising of HANA daemon timeout parameters might be needed for adapting the
 solution to a given environment. Please refer to SAP HANA documentation.
-
+.PP
 This hook script needs to be installed, configured and activated on all HANA
 nodes.
 .PP
 .\"
 .SH SUPPORTED PARAMETERS
+.\"
 * The "HA/DR providers" API accepts the following parameters for the
 ha_dr_provider_suschksrv section in global.ini:
 .TP
@@ -66,18 +70,24 @@ Action to be processed when a lost indexserver is identified.
 - \fBignore\fP: do nothing, just write to tracefiles.
 .br
 - \fBstop\fP: do 'sapcontrol ... StopSystem'.
-If this is combined with SAPHana or SAPHanaController RA parameter 'AUTOMATED_REGISTER=true',
+If this is combined with SAPHanaController RA parameter 'AUTOMATED_REGISTER=true',
 HANA needs to release all OS resources prior to the automated registering. See
 also manual page ocf_suse_SAPHanaController(7). 
 .br
 - \fBkill\fP: do 'HDB kill-<\fIsignal\fR>'. The signal can be defined by parameter 'kill_signal'.
-If this is combined with SAPHanaController RA parameter 'AUTOMATED_REGISTER=true',
-HANA needs to release all OS resources prior to the automated registering.
+This action is primarily meant for scale-up, and scale-out with host auto-failover
+(aka BW).
+.br
+On scale-out without host auto-failover (aka ERP), it depends on runtime effects,
+whether HANA will try a restart.
+.br
+If this is combined with SAPHanaController RA parameter 'AUTOMATED_REGISTER=true', HANA
+needs to release all OS resources prior to the automated registering.
 .br
 - \fBfence\fP: do 'crm node fence <\fIhost\fR>'. This needs a Linux cluster
-STONITH method and sudo permission. This action is primarily meant for scale-up.
-For scale-out, SAPHanaSR-agent-fencing should be configured additionally, see
-manual page SAPHanaSR-agent-fencing(8) for details.
+STONITH method and sudo permission.
+For scale-out, SAPHanaSR-alert-fencing needs to be configured additionally, see
+manual page SAPHanaSR-alert-fencing(8) for details.
 .br
 .\" TODO - suicide: do 'systemctl reboot'. Do NOT use this!
 .\" .br
@@ -147,6 +157,7 @@ Optional. Timeout in milliseconds. Default is 2000.
 .PP
 .\"
 .SH RETURN CODES
+.\"
 .B 0
 Successful program execution.
 .br
@@ -155,7 +166,7 @@ Usage, syntax or execution errors.
 .PP
 .\"
 .SH EXAMPLES
-.PP
+.\"
 \fB*\fP Example for minimal entry in SAP HANA scale-up global configuration
 /hana/shared/$SID/global/hdb/custom/config/global.ini
 .PP
@@ -375,6 +386,7 @@ Note: Understand the impact before trying.
 .PP
 .\"
 .SH FILES
+.\"
 .TP
 /usr/share/SAPHanaSR-angi/susChkSrv.py
 the hook provider, delivered with the RPM
@@ -399,6 +411,7 @@ HADR provider hook script tracefile
 .PP
 .\"
 .SH REQUIREMENTS
+.\"
 1. SAP HANA 2.0 SPS05 or later provides the HA/DR provider hook method
 srServiceStateChanged() with needed parameters.
 .PP
@@ -435,12 +448,14 @@ be used only, if the SAPHanaSR-alert-fencing is configured.
 that comes with SAP HANA has to be used.
 .\"
 .SH BUGS
+.\"
 In case of any problem, please use your favourite SAP support process to open
 a request for the component BC-OP-LNX-SUSE.
 Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
 .SH SEE ALSO
+.\"
 \fBSAPHanaSR\fP(7) , \fBSAPHanaSR-ScaleOut\fP(7) ,  \fBSAPHanaSR.py\fP(7) ,
 \fBocf_suse_SAPHanaTopology\fP(7) , \fBocf_suse_SAPHanaController\fP(7) ,
 \fBSAPHanaSR-hookHelper\fP(8) , \fBSAPHanaSR-manageProvider\fP(8) , 
@@ -458,11 +473,13 @@ SAP note 2177064
 .PP
 .\"
 .SH AUTHORS
+.\"
 A.Briel, F.Herschel, L.Pinne.
 .PP
 .\"
 .SH COPYRIGHT
-(c) 2022-2025 SUSE LLC
+.\"
+(c) 2022-2026 SUSE LLC
 .br
 susChkSrv.py comes with ABSOLUTELY NO WARRANTY.
 .br

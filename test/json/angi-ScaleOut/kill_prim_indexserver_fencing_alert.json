@@ -36,12 +36,12 @@
             "loop": 240,
             "wait": 2,
             "pSite": [
-                "lpt > 1000000000",
+                "lpt >~ 1000000000:(20)",
                 "srr == P"
             ],
             "pHost": [
                 "clone_state is None",
-                "role is None",
+                "roles is None",
                 "score is None"
             ]
         },
@@ -52,12 +52,11 @@
             "loop": 240,
             "wait": 2,
             "pSite": [
-                "lss == 1",
                 "srr == P"
             ],
             "pWorker": [
                 "clone_state is None",
-                "role is None",
+                "roles is None",
                 "score is None"
             ]
         },

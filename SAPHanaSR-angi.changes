@@ -1,4 +1,102 @@
 -------------------------------------------------------------------
+Mon Feb  2 18:49:34 UTC 2026 - abriel@suse.com
+
+- Version bump to 1.3.0
+  * Technology preview - Support for XSA standalone node
+    in Mx-setup (one master, one XSA worker)
+  * improve logging to SAP HANA trace file
+    (gh#SUSE/SAPHanaSR#240; bsc#1257746)
+  * improve HANA 'stop' logging
+    (bsc#1257747)
+  * improve srHook attribute logging
+    (bsc#1257744)
+  * stop lost slave workers, if master nameserver node crashed
+    before promoting the secondary (score 101)
+  * fix stop status for lost slave worker
+    (bsc#1257747)
+  * SAPHanaSR-alert-fencing could now restart a node without using
+    cluster infrastructure (sysrq-trigger)
+    So it's now crmsh agnostic
+    (gh#SUSE/SAPHanaSR#291, but alternative implementation)
+  * new man page
+    SAPHanaSR-ScaleOut-XSA.7
+  * update man pages:
+    ocf_suse_SAPHanaFilesystem.7
+    SAPHanaController-scale-out.7
+    SAPHanaController-scale-up.7
+    SAPHanaSR-alert-fencing.8
+    SAPHanaSR-angi-scenarios.7
+    SAPHanaSR-angi.7
+    SAPHanaSR-hookHelper.8
+    SAPHanaSR-ScaleOut.7
+    SAPHanaSR-ScaleOut_basic_cluster.7
+    SAPHanaSR-showAttr.8
+    SAPHanaSR_basic_cluster.7
+    SAPHanaSR_maintenance_examples.7
+    SAPHanaSR_upgrade_to_angi.7
+    susHanaSR.py.7
+  * update man pages - copyright date only:
+    ocf_suse_SAPHanaController.7
+    ocf_suse_SAPHanaTopology.7
+    SAPHanaSR-manageProvider.8
+    SAPHanaSR-replay-archive.8
+    SAPHanaSR-show-hadr-runtimes.8
+    SAPHanaSR-showAttr_properties.5
+    SAPHanaSR-upgrade-to-angi-demo.8
+    SAPHanaSR.7
+    susChkSrv.py.7
+    susCostOpt.py.7
+    susHanaSrMultiTarget.py.7
+    susTkOver.py.7
+
+- change required crmsh version from 4.4.0 to 4.4.2+20250526.46896f4
+
+-------------------------------------------------------------------
+Tue Nov 18 14:09:26 UTC 2025 - abriel@suse.com
+
+- Version bump to 1.2.12
+  * saphana_monitor needs to send OCF_NOT_RUNNING for PROBES,
+    if the workload is down AND clone-flag is "DEMOTED".
+    This allows crm_mon to show the proper (stopped) status.
+
+    The monitor still needs to return OCF_SUCESS, if the workload
+    is down AND the clone-flag is "DEMOTED" to tell the cluster to
+    stop (formally) these clone instances.
+    (bsc#1245661)
+  * Enhance fencing behavior in case of FAST-STOP
+    Trigger fencing when running into timeouts or getting lss==0
+    In case of Scale-Out score the nameserver slave higher than a
+    possible secondary takeover candidate to delay the takeover
+    till the current primary is completely down
+    (bsc#1250160)
+  * SAPHanaSR-showAttr - support hostnames containing dashes
+    (bsc#1236893)
+  * Improvements of the tools for a better support of life and
+    post mortem analysis.
+  * update man pages:
+    SAPHanaSR.7
+    SAPHanaSR_basic_cluster.7
+    SAPHanaSR-ScaleOut.7
+    SAPHanaSR-ScaleOut_basic_cluster.7
+    SAPHanaSR-angi-scenarios.7
+    SAPHanaController-scale-up.7
+    SAPHanaController-scale-out.7
+    ocf_suse_SAPHana.7
+    ocf_suse_SAPHanaController.7
+    ocf_suse_SAPHanaTopology.7
+    susChkSrv.py.7
+    susTkOver.py.7
+    SAPHanaSR-upgrade-to-angi-demo.8
+    SAPHanaSR-alert-fencing.8
+    SAPHanaSR-manageProvider.8
+    SAPHanaSR-replay-archive.8
+    SAPHanaSR-showAttr.8
+
+- Hint: Version 1.2.11 was used for a POC with some customers for
+  some new changes. All changes of this 'internal' version are now
+  integrated in this common released version 1.2.12
+
+-------------------------------------------------------------------
 Fri Mar  7 17:39:25 UTC 2025 - abriel@suse.com
 
 - Version bump to 1.2.10

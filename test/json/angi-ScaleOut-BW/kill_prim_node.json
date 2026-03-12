@@ -1,0 +1,95 @@
+{
+    "test": "kill_prim_node",
+    "name": "Kill primary master node",
+    "purpose": [
+        "angi",
+        "ScaleOut",
+        "kill",
+        "primary",
+        "node",
+        "master",
+        "failover"
+    ],
+    "start": "prereq10",
+    "steps": [
+        {
+            "step": "prereq10",
+            "name": "test prerequisites",
+            "next": "step20",
+            "loop": 1,
+            "wait": 1,
+            "post": "kill_secn_node",
+            "pSite": "pSiteUp",
+            "sSite": "sSiteUp",
+            "pHost": "pHostUp",
+            "sHost": "sHostUp",
+            "pWorker": "pWorkerUp",
+            "sWorker": "sWorkerUp"
+        },
+        {
+            "step": "step20",
+            "name": "failure detected",
+            "next": "step30",
+            "loop": 150,
+            "wait": 2,
+            "pSite": [
+                "lss ~ (1|2)",
+                "srr == P",
+                "lpt > 1000000000",
+                "srHook == PRIM",
+                "srPoll == PRIM"
+            ],
+            "sSite": "sSiteUp",
+            "pHost": [
+                "roles is None",
+                "score is None",
+                "roles is None"
+            ],
+            "sHost": "sHostUp"
+        },
+        {
+            "step": "step30",
+            "name": "begin recover",
+            "next": "final40",
+            "loop": 120,
+            "wait": 2,
+            "pSite": [
+                "lss ~ (1|2)",
+                "srr == P",
+                "lpt > 1000000000",
+                "srHook == PRIM",
+                "srPoll == PRIM"
+            ],
+            "sSite": "sSiteUp",
+            "pHost": [
+                "clone_state == DEMOTED",
+                "roles == master1::worker:",
+                "score ~ (-INFINITY|0|-1)"
+            ],
+            "sHost": "sHostUp"
+        },
+        {
+            "step": "final40",
+            "name": "end recover",
+            "next": "END",
+            "loop": 180,
+            "wait": 2,
+            "post": "cleanup",
+            "pSite": [
+                "lpt > 1000000000",
+                "lss == 3",
+                "srr == P",
+                "srHook == PRIM",
+                "srPoll == PRIM"
+            ],
+            "pHost": [
+                "clone_state == DEMOTED",
+                "roles == master1:slave:worker:standby",
+                "score 140"
+            ],
+            "sHost": "sHostUp",
+            "pWorker": "pWorkerUp",
+            "sWorker": "sWorkerUp"
+        }
+    ]
+}

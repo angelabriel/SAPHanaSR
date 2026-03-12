@@ -1,13 +1,14 @@
 .\" Version: 1.2
 .\"
-.TH SAPHanaSR 7 "05 Jul 2025" "" "SAPHanaSR_basic_cluster"
+.TH SAPHanaSR 7 "30 Oct 2025" "" "SAPHanaSR_basic_cluster"
 .\"
 .SH NAME
+.\"
 SAPHanaSR_basic_cluster \- SAP HANA System Replication scale-up basic cluster configuration.
 .PP
 .\"
 .SH DESCRIPTION
-.PP
+.\"
 The SAP HANA System Replication scale-up scenario needs a certain basic
 cluster configuration. Besides this necessary settings, some additional
 configurations might match specific needs. Adapting a few SAP HANA settings
@@ -151,7 +152,7 @@ Please refer to SAP documentation before setting this parameters.
 .PP
 .\"
 .SH EXAMPLES
-.PP
+.\"
 \fB* crm basic configuration\fR
 .PP
 Below is an example crm basic configuration for SAPHanaSR. Shown are
@@ -286,7 +287,8 @@ setting the cluster into maintenance.
 \fB* crm IP address for active/active read-enabled resource configuration\fR
 .PP
 Let the Linux cluster manage an additional IP address and move that address
-along with the HANA secondary master nameserver.
+along with the HANA secondary master nameserver. Example SID is SLE, instance
+number 00.
 .\" TODO multi-node see below
 .PP
 .RS 2
@@ -297,11 +299,11 @@ primitive rsc_ip_ro_SLE_HDB00 IPaddr2 \\
 .br
  params ip=192.168.178.199
 .br
-colocation col_ip_ro_with_secondary_SLE_HDB00 \\
+colocation col_ip_ro_secondary_SLE_HDB00 \\
 .br
- 2000: rsc_ip_ro_SLE_HDB00:Started mst_SAPHanaCon_SLE_HDB00:Demoted
+ 2000: rsc_ip_ro_SLE_HDB00:Started mst_SAPHanaCon_SLE_HDB00:Unpromoted
 .br
-location loc_ip_ro_not_master_SLE_HDB00 \\
+location loc_ip_ro_master_SLE_HDB00 \\
 .br
  rsc_ip_ro_SLE_HDB00 \\
 .br
@@ -381,7 +383,6 @@ After the root cause has been found and fixed, the failure message can be
 cleaned.
 .PP
 .RS 2
-.br
 # stonith_admin --cleanup --history=<originator_node>
 .RE
 .PP
@@ -401,7 +402,6 @@ In case systemd-style init is used for the HANA database, the services can be
 checked. Example SID is HA1, instance number is 10.
 .PP
 .RS 2
-.br
 # systemctl list-unit-files | grep -i sap
 .br
 # systemctl status SAPHA1_10.service
@@ -446,16 +446,55 @@ Example SID is S07, instance number is 00.
 # systemd-analyze dot | grep "pacemaker.*SAPS07_00"
 .RE
 .PP
+\fB* check running pacemakerd daemon for PCMK_ settings
+.PP
+No output means default, which is f.e. PCMK_fail_fast=no. See
+/etc/sysconfig/pacemakerd for details.
+.PP
+.RS 2
+# cat /proc/$(pgrep pacemakerd)/environ | tr '\\0' '\\n' | grep PCMK_
+.RE
+.PP
+\fB* check what SBD_ settings pacemakerd knows from running sbd daemon
+.PP
+No output means default. See /etc/sysconfig/sbd for details.
+.PP
+.RS 2
+# cat /proc/$(pgrep pacemakerd)/environ | tr '\\0' '\\n' | grep SBD_
+.RE
+.PP
+\fB* check for pacemaker IPC timeouts
+.PP
+.RS 2
+# grep "pacemaker-.*unresponsive.to.ipc" /var/log/messags
+.RE
+.PP
+.\"
+.SH FILES
+\"
+.TP
+/var/lib/pacemaker/pengine/pe-*.bz
+pacemaker CIB snapshot files
+.TP
+/var/log/crmsh/crmsh.log
+crm shell log
+.TP
+/var/log/messages
+general system log
+.TP
+/var/log/pacemaker/pacemaker.log
+pacemaker log
+.PP
 .\"
 .SH BUGS
-.PP
+.\"
 In case of any problem, please use your favourite SAP support process to open
 a request for the component BC-OP-LNX-SUSE.
 Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
 .SH SEE ALSO
-.PP
+.\"
 \fBocf_suse_SAPHanaTopology\fP(7) , \fBocf_suse_SAPHanaController\fP(7) ,
 \fBocf_suse_SAPHanaFilesystem\fP(7) , \fBocf_heartbeat_IPaddr2\fP(7) ,
 \fBocf_heartbeat_MailTo\fP(7) ,
@@ -477,15 +516,15 @@ https://www.clusterlabs.org
 .PP
 .\"
 .SH AUTHORS
-.PP
+.\"
 A.Briel, F.Herschel, L.Pinne.
 .PP
 .\"
 .SH COPYRIGHT
-.PP
+.\"
 (c) 2018 SUSE Linux GmbH, Germany.
 .br
-(c) 2019-2025 SUSE LLC
+(c) 2019-2026 SUSE LLC
 .br
 For details see the GNU General Public License at
 http://www.gnu.org/licenses/gpl.html

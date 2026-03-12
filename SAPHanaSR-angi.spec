@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2013-2014 SUSE Linux Products GmbH, Nuernberg, Germany.
 # Copyright (c) 2014-2016 SUSE Linux GmbH, Nuernberg, Germany.
-# Copyright (c) 2017-2025 SUSE LLC.
+# Copyright (c) 2017-2026 SUSE LLC.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -21,7 +21,7 @@ License:        GPL-2.0
 Group:          Productivity/Clustering/HA
 AutoReqProv:    on
 Summary:        Resource agents to control the HANA database in system replication setup
-Version:        1.2.11
+Version:        1.3.0
 Release:        0
 Url:            https://www.suse.com/c/fail-safe-operation-of-sap-hana-suse-extends-its-high-availability-solution/
 
@@ -37,7 +37,7 @@ Requires:       resource-agents
 Requires:       perl
 
 # Require crmsh-scripts for the HAWK2 wizards
-Requires:       crmsh >= 4.4.0
+Requires:       crmsh >= 4.4.2+20250526.46896f4
 Requires:       crmsh-scripts >= 4.4.0
 Requires:       python3
 Requires:       /usr/bin/xmllint

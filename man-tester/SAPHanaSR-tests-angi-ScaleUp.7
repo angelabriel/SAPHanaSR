@@ -3,11 +3,12 @@
 .TH SAPHanaSR-tests-angi-ScaleUp 7 "11 Mar 2025" "" "SAPHanaSR-angi"
 .\"
 .SH NAME
+.\"
 SAPHanaSR-tests-angi-ScaleUp \- Functional tests for SAPHanaSR Scale-Up.
 .PP
 .\"
 .SH DESCRIPTION
-.PP
+.\"
 Functional test are shipped for scale-up scenarios. This tests could be run
 out-of-the-box. The test cases are defined in dedicated files.
 See manual page SAPHanaSR-tests-syntax(5) for syntax details. Details like
@@ -65,25 +66,25 @@ Kill primary node.
 .TP
 \fBkill_prim_pacemakerd\fP
 Kill primary pacemakerd.
-.TP
-\fBkill_prim_pacemkr-attrd\fP
-Kill primary pacemaker-attrd (PCMK_fail_fast=no).
+.\" .TP
+.\" \fBkill_prim_pacemkr-attrd\fP
+.\" Kill primary pacemaker-attrd (PCMK_fail_fast=yes).
 .TP
 .TP
 \fBkill_prim_pacemkr-based\fP
-Kill primary pacemaker-based (PCMK_fail_fast=no).
+Kill primary pacemaker-based (PCMK_fail_fast=yes).
 .TP
 \fBkill_prim_pacemkr-ctrld\fP
-Kill primary pacemaker-controld (PCMK_fail_fast=no).
+Kill primary pacemaker-controld (PCMK_fail_fast=yes).
 .\" .TP
 .\" \fBkill_prim_pacemkr-execd\fP
-.\" Kill primary pacemaker-controld (PCMK_fail_fast=no).
+.\" Kill primary pacemaker-controld (PCMK_fail_fast=yes).
 .\" .TP
 .\" \fBkill_prim_pacemkr-fenced\fP
-.\" Kill primary pacemaker-fenced (PCMK_fail_fast=no).
+.\" Kill primary pacemaker-fenced (PCMK_fail_fast=yes).
 .\" .TP
 .\" \fBkill_prim_pacemkr-schdlrd\fP
-.\" Kill primary pacemaker-schedulerd (PCMK_fail_fast=no).
+.\" Kill primary pacemaker-schedulerd (PCMK_fail_fast=yes).
 .TP
 \fBkill_prim_saphostexec\fP
 Kill primary saphostexec.
@@ -107,25 +108,25 @@ Kill secondary node.
 Kill secondary pacemakerd.
 .TP
 \fBkill_secn_pacemkr-attrd\fP
-Kill secondary pacemaker-attrd (PCMK_fail_fast=no).
+Kill secondary pacemaker-attrd (PCMK_fail_fast=yes).
 .TP
 \fBkill_secn_pacemkr-based\fP
-Kill secondary pacemaker-based (PCMK_fail_fast=no).
+Kill secondary pacemaker-based (PCMK_fail_fast=yes).
 .TP
 \fBkill_secn_pacemkr-ctrld\fP
-Kill secondary pacemaker-controld (PCMK_fail_fast=no).
+Kill secondary pacemaker-controld (PCMK_fail_fast=yes).
 .\" .TP
 .\" \fBkill_secn_pacemkr-execd\fP
-.\" Kill secondary pacemaker-execd (PCMK_fail_fast=no).
+.\" Kill secondary pacemaker-execd (PCMK_fail_fast=yes).
 .\" .TP
 .\" \fBkill_secn_pacemkr-fenced\fP
-.\" Kill primary pacemaker-fenced (PCMK_fail_fast=no).
+.\" Kill primary pacemaker-fenced (PCMK_fail_fast=yes).
 .\" .TP
 .\" \fBkill_secn_pacemkr-schdlrd\fP
-.\" Kill secondary pacemaker-schedulerd (PCMK_fail_fast=no).
-.TP
-\fBkill_secn_xsengine\fP
-Kill secondary xsengine.
+.\" Kill secondary pacemaker-schedulerd (PCMK_fail_fast=yes).
+.\" .TP
+.\" \fBkill_secn_xsengine\fP
+.\" Kill secondary xsengine.
 .\" .TP
 .\" \fBmaintenance_cluster_bootstrap\fP
 .\" Maintenance procedure, initially configuring cluster resources.
@@ -136,11 +137,17 @@ Maintenance procedure with stopping and restarting cluster, keep HANA running.
 \fBmaintenance_cluster_turn_hana\fP
 Maintenance procedure, manually turning HANA sites.
 .TP
+\fBmaintenance_prim_crmreport\fP
+Maintenance procedure, calling crm report on primary.
+.TP
 \fBmaintenance_prim_supportconfig\fP
 Maintenance procedure, calling supportconfig on primary.
-.\" .TP
-.\" \fBmaintenance_prim_crmreport\fP
-.\" Maintenance procedure, calling crm report on primary.
+.TP
+\fBmaintenance_secn_crmreport\fP
+Maintenance procedure, calling crm report on secondary.
+.TP
+\fBmaintenance_secn_supportconfig\fP
+Maintenance procedure, calling supportconfig on secondary.
 .TP
 \fBmaintenance_with_standby_nodes\fP
 Maintenance procedure, standby+online secondary then standby+online primary.
@@ -152,7 +159,7 @@ No operation - check, wait and check again (stability check).
 Check regulary for one hour that there is no failure, like nop.
 .\" .TP
 .\" \fBregister_prim_cold_hana\fP
-.\" Stop cluster, do manual takeover, leave former primary down and unregistered, start cluster. 
+.\" Stop cluster, do manual takeover, leave former primary down and unregistered, start cluster.
 .TP
 \fBrestart_cluster_hana_running\fP
 Stop and restart cluster, keep HANA running. Slightly differs from maintenance.
@@ -174,7 +181,7 @@ Set secondary node standby and online again.
 .PP
 .\"
 .SH EXAMPLES
-.PP
+.\"
 * List tests for SAPHanaSR-angi scal-up scenarios.
 .PP
 .RS 2
@@ -183,6 +190,7 @@ Set secondary node standby and online again.
 .PP
 .\"
 .SH FILES
+.\"
 .TP
 /usr/share/SAPHanaSR-tester/json/angi-ScaleUp/
 functional tests for SAPHanaSR-angi scale-up scenarios.
@@ -205,14 +213,14 @@ Please refer to the product documentation.
 .PP
 .\"
 .SH BUGS
-.PP
-In case of any problem, please use your favourite SAP support process to open
-a request for the component BC-OP-LNX-SUSE.
+.\"
+.\" In case of any problem, please use your favourite SAP support process to open
+.\" a request for the component BC-OP-LNX-SUSE.
 Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
 .SH SEE ALSO
-.PP
+.\"
 \fBSAPHanaSR-tester\fP(7) , \fBSAPHanaSR-testCluster\fP(8) ,
 \fBSAPHanaSR-tests-description\fP(7) , \fBSAPHanaSR-tests-syntax\fP(5) ,
 \fBSAPHanaSR-tests-angi-ScaleOut\fP(7) ,
@@ -220,13 +228,13 @@ Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
 .SH AUTHORS
-.PP
+.\"
 F.Herschel, L.Pinne.
 .PP
 .\"
 .SH COPYRIGHT
-.PP
-(c) 2023-2025 SUSE LLC
+.\"
+(c) 2023-2026 SUSE LLC
 .br
 The package SAPHanaSR-tester comes with ABSOLUTELY NO WARRANTY.
 .br

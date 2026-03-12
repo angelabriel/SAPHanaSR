@@ -3,11 +3,12 @@
 .TH SAPHanaSR-tests-classic-ScaleOut 7 "14 Feb 2025" "" "SAPHanaSR-angi"
 .\"
 .SH NAME
+.\"
 SAPHanaSR-tests-classic-ScaleOut \- Functional tests for SAPHanaSR-ScaleOut.
 .PP
 .\"
 .SH DESCRIPTION
-.PP
+.\"
 Functional test are shipped for the scale-out ERP scenario. This tests could
 be run out-of-the-box. The test cases are defined in dedicated files.
 See manual page SAPHanaSR-tests-syntax(5) for syntax details. Details like
@@ -117,9 +118,9 @@ Kill secondary worker instance.
 .TP
 \fBkill_secn_worker_node\fP
 Kill secondary worker node.
-.TP
-\fBkill_secn_xsengine\fP
-Kill secondary master xsengine.
+.\" .TP
+.\" \fBkill_secn_xsengine\fP
+.\" Kill secondary master xsengine.
 .\" .TP
 .\" \fBmaintenance_cluster_hana_running\fP
 .\" Maintenance procedure with stopping and restarting cluster, keep HANA running.
@@ -127,11 +128,17 @@ Kill secondary master xsengine.
 \fBmaintenance_cluster_turn_hana\fP
 Maintenance procedure, manually turning HANA sites.
 .TP
+\fBmaintenance_prim_crmreport\fP
+Maintenance procedure, calling crm report on primary master node.
+.TP
 \fBmaintenance_prim_supportconfig\fP
 Maintenance procedure, calling supportconfig on primary master node.
-.\" .TP
-.\" \fBmaintenance_prim_crmreport\fP
-.\" Maintenance procedure, calling crm report on primary master node.
+.TP
+\fBmaintenance_secn_crmreport\fP
+Maintenance procedure, calling crm report on secondary master node.
+.TP
+\fBmaintenance_secn_supportconfig\fP
+Maintenance procedure, calling supportconfig on secondary.
 .TP
 \fBnop\fP
 No operation - check, wait and check again (stability check).
@@ -150,14 +157,14 @@ Standby secondary node and online again.
 .PP
 .\"
 .SH EXAMPLES
-.PP
-* List tests for SAPHanaSR-ScaleOut ERP scenarios
+.\"
+\fB*\fR List tests for SAPHanaSR-ScaleOut ERP scenarios
 .PP
 .RS 2
 # ls /usr/share/SAPHanaSR-tester/json/classic-ScaleOut/
 .RE
 .PP
-* Check for new SAPHanaSR-showAttr
+\fB*\fR Check for new SAPHanaSR-showAttr
 .PP
 .RS 2
 # /usr/bin/SAPHanaSR-showAttr --format=tester
@@ -165,6 +172,7 @@ Standby secondary node and online again.
 .PP
 .\"
 .SH FILES
+.\"
 .TP
 /usr/share/SAPHanaSR-tester/json/classic-ScaleOut/
 functional tests for SAPHanaSR-ScaleOut ERP scenarios.
@@ -180,26 +188,26 @@ script SAPHanaSR-showAttr from SAPHanaSR-angi.
 .PP
 .\"
 .SH REQUIREMENTS
+.\"
+\fB*\fR The package SAPHanaSR-tester-client is needed on the cluster nodes.
 .PP
-* The package SAPHanaSR-tester-client is needed on the cluster nodes.
+\fB*\fR See also the REQUIREMENTS section in SAPHanaSR-tester(7) and SAPHanaSR(7).
 .PP
-* See also the REQUIREMENTS section in SAPHanaSR-tester(7) and SAPHanaSR(7).
-.PP
-* Further, HANA database and Linux cluster are configured according to the SUSE
+\fB*\fR Further, HANA database and Linux cluster are configured according to the SUSE
 setup guide for the scale-out ERP style scenario (two nodes per site, no standby).
 .PP
-* Of course, HANA database and Linux cluster have certain requirements.
+\fB*\fR Of course, HANA database and Linux cluster have certain requirements.
 Please refer to the product documentation.
 .\"
 .SH BUGS
-.PP
-In case of any problem, please use your favourite SAP support process to open
-a request for the component BC-OP-LNX-SUSE.
+.\"
+.\" In case of any problem, please use your favourite SAP support process to open
+.\" a request for the component BC-OP-LNX-SUSE.
 Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
 .SH SEE ALSO
-.PP
+.\"
 \fBSAPHanaSR-tester\fP(7) , \fBSAPHanaSR-testCluster\fP(8) ,
 \fBSAPHanaSR-tests-description\fP(7) , \fBSAPHanaSR-tests-syntax\fP(5) ,
 \fBSAPHanaSR-tests-classic-ScaleUp\fP(7) , \fBSAPHanaSR-ScaleOut\fP(7) ,
@@ -207,13 +215,13 @@ Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
 .SH AUTHORS
-.PP
+.\"
 F.Herschel, L.Pinne.
 .PP
 .\"
 .SH COPYRIGHT
-.PP
-(c) 2023-2025 SUSE LLC
+.\"
+(c) 2023-2026 SUSE LLC
 .br
 The package SAPHanaSR-tester comes with ABSOLUTELY NO WARRANTY.
 .br

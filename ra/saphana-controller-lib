@@ -10,7 +10,7 @@
 # Support:      linux@sap.com
 # License:      GNU General Public License (GPL)
 # Copyright:    (c) 2013,2014 SUSE Linux Products GmbH
-# Copyright:    (c) 2015-2024 SUSE LLC
+# Copyright:    (c) 2015-2026 SUSE LLC
 #
 # An example usage:
 #      See usage() function below for more details...
@@ -34,7 +34,7 @@
 #######################################################################
 # TODO PRIO2: NG - use SAPHanaControllerLibVersion=
 # shellcheck disable=SC2034
-SAPHanaControllerLibVersion="1.2.8"
+SAPHanaControllerLibVersion="1.3.0"
 #######################################################################
 #
 # KNOWN PROBLEMS TO BE FIXED:
@@ -580,6 +580,7 @@ function saphana_start() {
             lastSrHook=$(get_SRHOOK_plain "$gSite")
             if [ -n "$lastSrHook" ]; then
                 # reset old srHook attribute to SWAIT as we are starting right now
+                super_ocf_log info "ACT: SAP HANA START: MARK SECONDARY AS SWAIT"
                 set_SRHOOK "$gSite" "SWAIT"
             fi
             output=$("$SAPCONTROL" -nr "$InstanceNr" -function StartSystem); rc="$?"
@@ -637,9 +638,10 @@ function saphana_stopSystem() {
     if [ "$rc" == "$OCF_SUCCESS" ]; then
         ## TODO: PRIO 1: Only stop System, if I am the last master!
         ## TODO: PRIO 2: Do we need a "last-man-switch-off-the-light" detection?
+        super_ocf_log info "ACT: SAP HANA STOP: Stopping System $SID-$InstanceName: (function $stopMode)"
         output=$("$SAPCONTROL" -nr "$InstanceNr" -function "$stopMode")
         rc=$?
-         super_ocf_log info "ACT: SAP HANA STOP: Stopping System $SID-$InstanceName: $output"
+        super_ocf_log info "ACT: SAP HANA STOP: Stopping System $SID-$InstanceName: $output"
     fi
     if [ "$rc" == 0 ]; then
         HANA_ACTION_TIMEOUT=$(get_action_timeout WaitforStopped)
@@ -678,6 +680,11 @@ function saphana_stopSystem() {
 	    # DONE PRIO1: RC restore!!
         if [ "$rcWfS" == 0 ]; then
             super_ocf_log info "ACT: SAP HANA: System $SID-$InstanceName stopped: $output"
+            hanarole="$(get_role_by_landscape "${NODENAME}" "${gVirtName}")"; lssRc="$?"
+            set_hana_site_attribute "$gSite" "${lssRc}" "${ATTR_NAME_HANA_SITE_LSS[@]}"
+            gFullRole="${lssRc}:${gSrr}:${gRole}"
+            scoring_crm_promote "$gFullRole" "$my_sync"
+            super_ocf_log info "ACT: SAP HANA: System $SID-$InstanceName stopped: $output => scoring and set LSS"
             rc="$OCF_SUCCESS"
         else
             super_ocf_log err "ACT: SAP HANA: System $SID-$InstanceName stop failed: $output, rc=$rc"
@@ -719,7 +726,7 @@ function saphana_stop() {
         elif is_lost_nameserver_slave && [ -z "$gTheMaster" ]; then
             super_ocf_log info "ACT: saphana_stop: is_lost_nameserver_slave and no master nameserver is available"
             # Stop ONLY the local SAP HANA instance to avoid an isolated SAP HANA nameserver slave does shutdown the entire site
-            saphana_stopSystem Stop rc=$?
+            saphana_stopSystem Stop; rc=$?
         else
             is_active_nameserver_slave; is_slave_rc=$?
             super_ocf_log info "ACT: saphana_stop: NEITHER is_active_nameserver_slave (rc=$is_slave_rc) NOR is_the_master_nameserver debug: ($gTheMaster) NOR is_lost_nameserver_slave"
@@ -1110,7 +1117,7 @@ function saphana_start_clone() {
         primary_status="$(check_for_primary "live")";
         # gNrSiteNode vs. landscape-workers?
         get_hana_landscape_status ""; lss=$?
-        lss_worker=$(echo "$hana_LSS_Out" | awk '/indexServerConfigRole=worker/ { w++; } END { print w; }')
+        lss_worker=$(echo "$hana_LSS_Out" | awk '/indexServerConfigRole=worker/ { w++; } /hostConfigRoles=xs_worker/ { w++; } END { print w; }')
         #
         # Only start HANA, if there are enough nodes in the cluster to fulfill the landscape:
         # $gNrSiteNode -ge $lss_worker means that we count all nodes (worker and standby) in the
@@ -1635,7 +1642,6 @@ function saphana_monitor_secondary() {
     #   these files needs to be removed to avoid applying very old values after a takeover (to be new primary)
     #
     for rFile in "/hana/shared/$SID/$InstanceName/.crm_attribute."*; do
-        # recover_site_attributes_from_file "$rFile"
         rm "$rFile"
     done
     case "$lss" in
@@ -1660,6 +1666,7 @@ function saphana_monitor_secondary() {
 function saphana_monitor_clone_not_msn() {
     # called by: saphana_monitor_clone
     local nState
+    local rc
     nState=$(get_hana_attribute "${NODENAME}" "${ATTR_NAME_HANA_CLONE_STATE[@]}")
     # TODO: PRIO2: Check, if we need to (re) start a failed SAP HANA instance in a swarm
     if ! saphana_check_local_instance; then
@@ -1678,8 +1685,14 @@ function saphana_monitor_clone_not_msn() {
             super_ocf_log info "DEC: local instance AND landscape are down (lss=$lss)"
             case "$nState" in
                 DEMOTED )
-                            super_ocf_log info "DEC: DEMOTED => OCF_SUCCESS"
-                            rc="$OCF_SUCCESS";;          # landscape is down and local instance is down -> report SUCCESS
+                            if ! ocf_is_probe; then
+                                super_ocf_log info "DEC: DEMOTED => OCF_SUCCESS"
+                                rc="$OCF_SUCCESS"          # landscape is down and local instance is down -> report SUCCESS
+                            else
+                                super_ocf_log info "DEC: DEMOTED => OCF_NOT_RUNNING (Probe)"
+                                rc="$OCF_NOT_RUNNING"          # landscape is down and local instance is down -> report SUCCESS
+                            fi
+                            ;;
                 PROMOTED )
                             super_ocf_log info "DEC: PROMOTED => OCF_FAILED_MASTER"
                             rc="$OCF_FAILED_MASTER";;   # same, but for MASTER -> report FAILED_MASTER
@@ -1749,6 +1762,7 @@ function saphana_monitor_clone_not_msn() {
           esac
         fi
     fi
+    return "$rc"
 } # end function saphana_monitor_clone_not_msn
 
 function saphana_monitor_clone() {
@@ -1781,7 +1795,7 @@ function saphana_monitor_clone() {
         # setting clone_state to "DEMOTED" is needed to avoid misleading "PROMOTED"/"PROMOTED"
         #
         crm_res=$(crm_resource -W -r "$OCF_RESOURCE_INSTANCE")
-        [[ "$crm_res" =~ "is running on: "(.+)" Master" ]] && master_node_name="${BASH_REMATCH[1]}" || master_node_name=""
+        [[ "$crm_res" =~ "is running on: "(.+)" "(Promoted|Master)"" ]] && master_node_name="${BASH_REMATCH[1]}" || master_node_name=""
         if [ "$master_node_name" != "$NODENAME" ]; then
             if [ "$gLss" -ge 2 ]; then
                 # we are in a probe, hana is running and we need to reset the clone_state
@@ -1807,7 +1821,7 @@ function saphana_monitor_clone() {
                 super_ocf_log info "RA ON_FAIL_ACTION != 'fence'"
             fi
         else
-            super_ocf_log info "RA gFullRole=$gFullRole does not match '^1:P:'"
+            super_ocf_log info "RA gFullRole=$gFullRole - No FAST-STOP needed"
         fi
         super_ocf_log info "DEC: scoring_crm_promote **11**"
         scoring_crm_promote "$gFullRole" "$gSrHook"
@@ -1867,7 +1881,7 @@ function saphana_monitor_clone() {
         #
         # instance is not THE master nameserver
         #
-        saphana_monitor_clone_not_msn
+        saphana_monitor_clone_not_msn; rc=$?
     fi
     #
     # optional FAST-STOP - remove possible poison pill, if monitor is ok right now
@@ -2033,7 +2047,7 @@ function saphana_demote_clone() {
             super_ocf_log info "RA ON_FAIL_ACTION != 'fence'"
         fi
     else
-        super_ocf_log info "RA gFullRole=$gFullRole does not match '^1:P:'"
+        super_ocf_log info "RA gFullRole=$gFullRole - No FAST-STOP needed"
     fi
     super_ocf_log info "ACT: Demoted $SID-$InstanceName."
     super_ocf_log info "FLOW ${FUNCNAME[0]} rc=$rc"

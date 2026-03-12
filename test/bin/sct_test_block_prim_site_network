@@ -2,20 +2,21 @@
 #
 # sct_test_block_prim_site_network - block all network on primary site nodes
 #
-# (c) 2025 SUSE LLC
+# (c) 2025-2026 SUSE LLC
 # Author: F.Herschel, L.Pinne.
 # GNU General Public License v2. No warranty.
 # http://www.gnu.org/licenses/gpl.html
 #
 # lib-mig-status: CHECK
 # used-in:
-#   NOT FOUND!
+#   angi-ScaleOut: block_prim_site_network.json
+#   - list-end
 #
 set -u
 src=${BASH_SOURCE[0]}
 full_path=$(readlink -f "$src")
 dir_path=$(dirname "$full_path")
-source /usr/bin/sct_test_lib
+source /usr/lib/SAPHanaSR-tester/sct_test_lib
 source .test_properties
 currPrimary=$(sctl_get_curr_prim "$node01")
 currPriWorker=$(sctl_get_curr_prim_worker "${node01}")
@@ -23,7 +24,6 @@ currPriWorker=$(sctl_get_curr_prim_worker "${node01}")
 # shellcheck disable=SC2029
 sctl_run_crm "${node01}" "resource cleanup $mstResource"
 sctl_run_cs_wf_idle "${node01}" "-s 2"
-
 
 echo "==== Block network on ${currPrimary} ===="
 # shellcheck disable=SC2029

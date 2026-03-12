@@ -10,7 +10,7 @@
 # Support:      linux@sap.com
 # License:      GNU General Public License (GPL)
 # Copyright:    (c) 2013,2014 SUSE Linux Products GmbH
-# Copyright:    (c) 2015-2024 SUSE LLC
+# Copyright:    (c) 2015-2026 SUSE LLC
 #
 # An example usage:
 #      See usage() function below for more details...
@@ -32,7 +32,7 @@
 #     systemReplicationStatus.py (>= SPS090)
 #
 #######################################################################
-# SAPHanaControllerLibVersion="1.2.8"
+# SAPHanaControllerLibVersion="1.3.0"
 #######################################################################
 #
 # KNOWN PROBLEMS TO BE FIXED:
@@ -229,10 +229,14 @@ function scoring_crm_promote() {
               break;  # end scanning, best rule already found
         fi
     done
-    super_ocf_log debug "DBG: scoring_crm_promote adjust score $myScore"
-    # Do not score, if we did not found our role/sync at this moment - bsc#919925
-    if [ -n "$myScore" ]; then
-        set_crm_promote "$myScore"
+    if [[ "$myScore" == "NULL" ]]; then
+	    super_ocf_log info "DEC: scoring_crm_promote skip scoring because of value $myScore"
+    else
+	    super_ocf_log debug "DBG: scoring_crm_promote adjust score $myScore"
+	    # Do not score, if we did not found our role/sync at this moment - bsc#919925
+	    if [ -n "$myScore" ]; then
+            set_crm_promote "$myScore"
+	    fi
     fi
 } # end function scoring_crm_promote
 
@@ -316,6 +320,8 @@ function saphana_init_scoring_tables() {
        "[234]   P master[123]          .*       140             'primary - running, configured master nameserver role (failover candidate)'"
        "[015-9] P master[123]          .*        90             'primary - not running, but configured master nameserver role '"
        "[0-9]   P [^:]*:slave          .*        60             'primary - any running status, slave master nameserver role (should not happen for ScaleUp)'"
+       "0       P [^:]*:[?:-]          .*      NULL             'primary - lss=0 defect, keep scoring'"
+       "124     P [^:]*:[?:-]          .*      NULL             'primary - lss=124 defect, keep scoring'"
        "[234]   P [^:]*:[?:-]          .*         3             'primary - running, but nameserver role not detected'"
        "[015-9] P [^:]*:[?:-]          .*         2             'primary - not running and nameserver role not detected'"
        ".*      P [^:]*:[?:-]          .*         1             'primary - unknown lss'"
@@ -355,21 +361,24 @@ function saphana_init_scoring_tables() {
     )
     # shellcheck disable=SC2034
     SCORING_TABLE_PREFERRED_SITE_TAKEOVER_SO=(
-       "[234]   P master[123]:master            .*          150 'not described yet'"
-       "[234]   P master[123]                   .*          140 'not described yet'"
-       "[234]   P master[123]:slave:.*:standby  .*          115 'not described yet'"
-       "[234]   P master[123]:slave             .*          110 'not described yet'"
-       "[015]   P master[123]:                  .*           70 'not described yet'"
-       "[0-9]   P master[123]:*:standby         .*           60 'not described yet'"
-       "[0-9]   P slave:                        .*       -10000 'not described yet'"
+       "[234]   P master[123]:master            .*          150 'primary - running, active master nameserver role'"
+       "[234]   P master[123]                   .*          140 'primary - running, master nameserver candidate'"
+       "[234]   P master[123]:slave:.*:standby  .*          115 'primary - running, master nameserver candidate, standby role'"
+       "[234]   P master[123]:slave             .*          110 'primary - running, master nameserver candidate, no standby role'"
+       "[015]   P master[123]:                  .*           70 'primary - not running, master nameserver candidate'"
+       "[0-9]   P master[123]:*:standby         .*           60 'primary - any status, master nameserver candidate, standby role'"
+       "[234]   P slave:slave                   .*          101 'primary - any running status, slave nameserver role; delay possible takeover on secondary master till primary is completely down'"
+       "[01]    P slave:                        .*       -10000 'not described yet'"
+       "0       P [^:]*:[?:-]                   .*         NULL 'primary - lss=0 defect, keep scoring'"
+       "124     P [^:]*:[?:-]                   .*         NULL 'primary - lss=124 defect, keep scoring'"
        "[234]   S master[123]:master            SOK         100 'not described yet'"
        "[234]   S master[123]:slave             SOK          80 'not described yet'"
        "[015]   S master[123]:                  SOK          70 'not described yet'"
-       "[0-9]   S master[124]:*:standby         SFAIL    -22100 'not described yet'"
+       "[0-9]   S master[123]:*:standby         SFAIL    -22100 'not described yet'"
        "[0-9]   S slave:                        SOK      -12200 'not described yet'"
        "[0-9]   S slave:                        SFAIL    -22200 'not described yet'"
-       "[0-9]   S .*                              .*       -32300 'not described yet'"
-       ".*      . .*                              .*       -33333 'not described yet'"
+       "[0-9]   S .*                            .*       -32300 'not described yet'"
+       ".*      . .*                            .*       -33333 'not described yet'"
     )
     # shellcheck disable=SC2034
     SCORING_TABLE_PREFERRED_LOCAL_RESTART_SO=(
@@ -988,6 +997,7 @@ function recover_site_attributes_from_file() {
     if [ -f "$srHookAttributeFile" ]; then
         #
         # need to read attribute from the file
+        # e.g.: hana_ha1_site_srHook_S2 = SOK
         #
         mapfile -t mapLines <"$srHookAttributeFile"
         for mapLine in "${mapLines[@]}"; do
@@ -1025,7 +1035,10 @@ function recover_site_attributes_from_file() {
                     ;;
             esac
         done
-        rm "$srHookAttributeFile"
+        # DONE PRIO0: Do not delete file during probe-only
+        if ! ocf_is_probe; then
+            rm "$srHookAttributeFile"
+        fi
     fi
 } # end function recover_site_attributes_from_file
 

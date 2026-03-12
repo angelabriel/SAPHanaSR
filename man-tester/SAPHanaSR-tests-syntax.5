@@ -48,7 +48,7 @@ test identifier, unique
 test description
 .TP
 \fBpurpose\fB
-list of keywords, indicating which topology, components and case is tested, see below - [ angi | classic ] [ ScaleUp | ScaleOut ] [ master | worker ] [ ... ]
+list of keywords, indicating which topology, components and case is tested, see below - [ angi | classic ] [ ScaleUp | ScaleOut ] [ master | worker ] [ takeover | failover ] [ ... ]
 .TP
 \fBstart\fP
 .br
@@ -116,6 +116,9 @@ test cluster failure
 \fBdegraded\fR
 test leads to degraded HANA (lss=2), HANA recovers on its own
 .TP
+\fBfailover\fR
+test HANA host auto-failover
+.TP
 \fBfencing\fR
 test leads to node fencing
 .TP
@@ -173,6 +176,9 @@ test susHanaSR.py HA/DR provider hook script
 \fBsusTkOver\fR
 test susTkOver.py HA/DR provider hook script
 .TP
+\fBtakeover\fR
+test HANA SR takeover
+.TP
 \fBonfail\fR
 test may pass with an alternate result
 .TP
@@ -183,10 +189,10 @@ test on HANA worker node
 \fB*\fP Test step status <status>
 .PP
 Each step contains an expectation for SAPHanaSR attributes, which need to match.
-The attributes are arranged along the CIB and SAPHanaSR-showAttr sections. 
-The 
+The attributes are arranged along the CIB and SAPHanaSR-showAttr sections. There must be at least one expectation per step.
+The object is one of
 .PP
-[ pHost | sHost | pWorker | sWorker | pSite | sSite | pGlobal | sGlobal ]
+[ pHost | sHost | pWorker | sWorker | pSite | sSite | global | mstRsc ]
 .RS 2
 .TP
 pHost, sHost, pWorker, sWorker
@@ -195,8 +201,11 @@ node attributes
 pSite, sSite
 site attributes
 .TP
-pGlobal, sGlobal
-global attributes, not yet implmented
+global
+global attributes
+.TP
+mstRsc
+multi state resource attributes
 .PP
 See manual page SAPHanaSR-showAttr(8) for details on that attributes.
 .PP
@@ -277,29 +286,29 @@ contain logical "OR". A status with two conditions looks like this:
 A set of comparators is implemented. Some take integers, some take regular
 expression. In addition the "None" TODO. 
 .\" saphana_sr_test.py
-.\" re.search("(.*) (==|!=|>|>=|<|<=|~|!~|>~|is) (.*)", single_check)
+.\" re.search("(.*) (==|!=|>|>=|<|<=|~|!~|>~|is|is not) (.*)", single_check)
 .RS 2
 .TP
 ==
-equal, integer
+equal, integer or string
 .TP
 !=
-not equal, integer
+not equal, integer or string
 .TP
 >=
-greater or equal, integer
+greater or equal, integer or string
 .TP
 <=
-less or equal, interger
+less or equal, interger or string
 .TP
 >
-greater, integer
+greater, integer or string
 .TP
 <
-less
+less, integer or string
 .TP
 >~
-greater or like, first field integer and second field regular expression
+greater or like, first field integer or string and second field regular expression
 ( <\fIINTEGER\fP>:<\fIREGULAR_EXPRESSION\fP> )
 .TP
 ~
@@ -308,8 +317,9 @@ like, regular expression
 !~
 not like, regular expression
 .TP
-is
-TODO, the string "None"
+is None | Any - Term '\fBis None\fP' checks, if the left side (attribute) is not even available. Term '\fBis Any\fP' checks, if the left side (attribute) is available and has a value.
+.TP
+is not None - Equivalent to '\fBis Any\fP'.
 .RE
 .PP
 \fB*\fP Test step action "post"
@@ -525,8 +535,8 @@ See the REQUIREMENTS section in SAPHanaSR-tester(7).
 The SAPHanaSR-tester is under development. Syntax and formats are subject to
 change.
 .br
-In case of any problem, please use your favourite SAP support process to open
-a request for the component BC-OP-LNX-SUSE.
+.\" In case of any problem, please use your favourite SAP support process to open
+.\" a request for the component BC-OP-LNX-SUSE.
 Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
@@ -554,7 +564,7 @@ F.Herschel, L.Pinne.
 .\"
 .SH COPYRIGHT
 .\"
-(c) 2023-2025 SUSE LLC
+(c) 2023-2026 SUSE LLC
 .br
 The package SAPHanaSR-tester comes with ABSOLUTELY NO WARRANTY.
 .br
