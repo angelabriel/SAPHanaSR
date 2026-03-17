@@ -1,6 +1,6 @@
 .\" Version: 0.162.5
 .\"
-.TH SAPHanaSR 7 "26 Jun 2025" "" "SAPHanaSR"
+.TH SAPHanaSR 7 "17 Jan 2026" "" "SAPHanaSR"
 .\"
 .SH NAME
 .\"
@@ -46,7 +46,7 @@ takeover otherwise. This prevents from dual-primary situations.
 Note: To automate SAP HANA SR in scale-out setups, please use the package
 SAPHanaSR-ScaleOut.
 .PP
-\fBScenarios\fR
+\fBSituations\fR
 .PP
 .\" TODO
 In order to illustrate the meaning of the above overview, some important
@@ -186,7 +186,7 @@ The user is responsible for data integrity. See also susTkOver.py(7).
 .PP
 .\"
 .SH REQUIREMENTS
-.PP
+.\"
 For the current version of the package SAPHanaSR, the support is limited to the
 following scenarios and parameters:
 .PP
@@ -315,19 +315,22 @@ see also firewalld(8).
 .PP
 29. No SELinux rules must block any needed action. See also selinux(8).
 .PP
-30. Sizing of both HANA sites needs to be done according to SAP rules. The scale-up
+30. The Linux cluster should not start automatically at reboot on an node that 
+recently has been fenced.
+.PP
+31. Sizing of both HANA sites needs to be done according to SAP rules. The scale-up
 scenarios require both sites prepared for running the primary HANA database.
 .PP
 .\"
 .SH BUGS
-.PP
+.\"
 In case of any problem, please use your favourite SAP support process to open
 a request for the component BC-OP-LNX-SUSE.
-Please report any other feedback and suggestions to feedback@suse.com.
+.\" TODO Please report any other feedback and suggestions to feedback@suse.com.
 .PP
 .\"
 .SH SEE ALSO
-.PP
+.\"
 \fBocf_suse_SAPHanaTopology\fP(7) , \fBocf_suse_SAPHana\fP(7) , \fBocf_heartbeat_IPaddr2\fP(7) ,
 \fBSAPHanaSR_basic_cluster\fP(7) ,
 \fBSAPHanaSR.py\fP(7) , \fBsusCostOpt.py\fP(7) , \fBsusTkOver.py\fP(7) , \fBsusChkSrv.py\fP (7) ,
@@ -360,11 +363,12 @@ https://wiki.scn.sap.com/wiki/display/ATopics/HOW+TO+SET+UP+SAPHanaSR+IN+THE+COS
 https://blogs.sap.com/2020/01/30/sap-hana-and-persistent-memory/
 .PP
 .SH AUTHORS
-.PP
+.\"
 A.Briel, F.Herschel, L.Pinne.
 .PP
 .\"
 .SH COPYRIGHT
+.\"
 (c) 2015-2018 SUSE Linux GmbH, Germany.
 .br
 (c) 2019-2026 SUSE LLC
